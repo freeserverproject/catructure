@@ -1,11 +1,11 @@
-use fastnbt::error::Result as FastNBTResult;
+use ascii_tree::{Tree, write_tree};
 use flate2::read::GzDecoder;
 use std::{
-    io::Read, path::PathBuf, fs,
+    io::Read, path::PathBuf,
+    fs::File
 };
 
-
-use crate::model::structure;
+use crate::model::{structure, config};
 
 #[derive(Debug, clap::Args)]
 pub struct Arg {
@@ -14,21 +14,75 @@ pub struct Arg {
     #[arg(
         short = 'c',
         long = "config",
-        default_value = "blacklist.toml"
+        default_value = "catructure.toml"
     )]
     config: PathBuf
 }
 
 pub fn run(arg: Arg) {
-    let file = fs::File::open(&arg.file).unwrap();
+    // ファイル読み込み & デシリアライズ
+    let mut config = String::new();
+    File::open(&arg.config)
+        .expect("Failed read config file.")
+        .read_to_string(&mut config)
+        .expect("Failed read config file.");
+    let config = toml::from_str::<config::Config>(&config).unwrap();
+
+    let file = File::open(&arg.file).unwrap();
     let mut decoder = GzDecoder::new(file);
     let mut structure = vec![];
     decoder.read_to_end(&mut structure).unwrap();
 
-    let structure: FastNBTResult<structure::Structure> = fastnbt::from_bytes(&structure);
+    let structure = fastnbt::from_bytes::<structure::Structure>(&structure)
+        .expect("Failed serialize structure.");
 
-    println!(
-        "{:?}",
-        structure
-    );
+    // Paletteにblacklistのブロックが存在するか確認し存在したら随時追加
+    let mut blocked_blocks = Vec::<(&structure::PaletteBlock, Vec<&structure::BlockPosition>)>::new();
+
+    if let Some(palette) = &structure.palette {
+        for (index, block) in palette.iter().enumerate() {
+            if config.blacklist.blocks.contains(&block.name) {
+                let mut block_positions = Vec::new();
+
+                structure.blocks.iter().for_each(|block_pos| {
+                    if block_pos.state as usize == index {
+                        block_positions.push(block_pos);
+                    }
+                });
+
+                blocked_blocks.push((
+                    block,
+                    block_positions
+                ));
+            }
+        }
+    }
+
+    // 
+    if !blocked_blocks.is_empty() {
+        let mut blocked: Vec<Tree> = Vec::new();
+        for (palette_block, block_positions) in blocked_blocks {
+            let mut positions: Vec<Tree> = Vec::new();
+            for block_pos in block_positions {
+                let block_pos = &block_pos.pos;
+                positions.push(Tree::Leaf(vec![
+                    format!("{} {} {}", block_pos[0], block_pos[1], block_pos[2])
+                ]));
+            }
+
+            let blocked_blocks_node = Tree::Node(format!("{}", palette_block.name), positions);
+            blocked.push(blocked_blocks_node);
+        }
+
+        let mut blocked_blocks_tree_string = String::new();
+        write_tree(&mut blocked_blocks_tree_string, &Tree::Node(String::from("Blocked"), blocked)).expect("Failed write tree.");
+        println!("{}", blocked_blocks_tree_string);
+    } else {
+        println!("File OK!")
+    }
+
+    // println!(
+    //     "{:?}",
+    //     structure
+    // );
 }

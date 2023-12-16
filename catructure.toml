@@ -1,0 +1,17 @@
+# Contaierを許可するか否か
+# values:
+# - allow
+# - empty
+container = "empty"
+
+[blacklist]
+
+# Blacklistとに追加するブロックを追加
+# example
+# - "minecraft:bedrock"
+# - "minecraft:command_block"
+blocks = [
+  # Blocks here
+  # "minecraft:command_block"
+  "minecraft:soul_lantern"
+]
