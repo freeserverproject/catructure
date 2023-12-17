@@ -15,7 +15,9 @@ catructure --help
 
 check
 ```sh
-catructure 
+catructure check StructureFilepath
+# Example
+catructure check <assets/entrance_connector.nbt>
 ```
 
 ## その他
