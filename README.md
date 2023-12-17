@@ -3,9 +3,20 @@
 
 ## Features
 - [x] .nbt(structure)を読み込む
-- [ ] blockをブロックリストに追加する
-  - [ ] コンフィグファイル(.toml)
-  - [ ] Contaier持ちのブロックの制限
+- [x] blockをブロックリストに追加する
+  - [x] コンフィグファイル(.toml)
+  - [　] Contaier持ちのブロックの制限
+
+## How to use
+help
+```sh
+catructure --help
+```
+
+check
+```sh
+catructure 
+```
 
 ## その他
 とりあえずCLIで書いてるけどどの様な感じで使用するかを決めろバカ
