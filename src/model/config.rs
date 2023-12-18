@@ -33,6 +33,6 @@ impl Config {
             .read_to_string(&mut config)
             .map_err(CatructureError::FailedOpenConfigFile)?;
 
-        toml::from_str::<Config>(&config).map_err(CatructureError::FailedReadConfigFile)
+        toml::from_str::<Config>(&config).map_err(CatructureError::FailedDeserializeConfigFile)
     }
 }

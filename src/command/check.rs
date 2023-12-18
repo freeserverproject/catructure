@@ -1,13 +1,9 @@
 use ascii_tree::{Tree, write_tree};
-use flate2::read::GzDecoder;
-use std::{
-    io::Read, path::PathBuf,
-    fs::File
-};
+use std::path::PathBuf;
 
 use crate::{
     error::{Result, CatructureError},
-    model::{structure, config::Config}
+    model::{structure::{self, Structure}, config::Config}
 };
 
 #[derive(Debug, clap::Args)]
@@ -24,15 +20,7 @@ pub struct Arg {
 
 pub fn run(arg: Arg) -> Result<()> {
     let config = Config::read(arg.config)?;
-
-    // ファイル読み込み & デシリアライズ
-    let file = File::open(&arg.file).unwrap();
-    let mut decoder = GzDecoder::new(file);
-    let mut structure = vec![];
-    decoder.read_to_end(&mut structure).unwrap();
-
-    let structure = fastnbt::from_bytes::<structure::Structure>(&structure)
-        .expect("Failed serialize structure.");
+    let structure = Structure::read(arg.file)?;
 
     // Paletteにblacklistのブロックが存在するか確認し存在したら随時追加
     let mut blocked_blocks = Vec::<(&structure::PaletteBlock, Vec<&structure::BlockPosition>)>::new();
@@ -56,7 +44,6 @@ pub fn run(arg: Arg) -> Result<()> {
         }
     }
 
-    // 
     if !blocked_blocks.is_empty() {
         let mut blocked: Vec<Tree> = Vec::new();
         for (palette_block, block_positions) in blocked_blocks {

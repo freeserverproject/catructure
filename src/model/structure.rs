@@ -1,7 +1,13 @@
-use std::collections::HashMap;
+use std::{
+    collections::HashMap, fs::File, path::Path,
+    io::Read
+};
 
+use flate2::read::GzDecoder;
 use fastnbt::Value;
 use serde::{Serialize, Deserialize};
+
+use crate::error::{Result, CatructureError};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Structure {
@@ -12,6 +18,19 @@ pub struct Structure {
     pub palettes: Option<Vec<Vec<PaletteBlock>>>,
     pub blocks: Vec<BlockPosition>,
     pub entities: Vec<Entity>
+}
+
+impl Structure {
+    pub fn read<P: AsRef<Path>>(path: P) -> Result<Structure> {
+        let file = File::open(path)
+            .map_err(CatructureError::FailedReadNBTFile)?;
+        let mut decoder = GzDecoder::new(file);
+        let mut structure = vec![];
+        decoder.read_to_end(&mut structure).map_err(CatructureError::FailedDecodeNBTFile)?;
+
+        fastnbt::from_bytes::<Structure>(&structure)
+            .map_err(CatructureError::FailedDeserializeNBTFile)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
