@@ -1,5 +1,7 @@
 use clap::{Parser, Subcommand};
 
+use crate::error::Result;
+
 pub mod check;
 
 #[derive(Parser)]
@@ -10,7 +12,7 @@ pub struct StructCheckerCLI {
 }
 
 impl StructCheckerCLI {
-    pub fn run() {
+    pub fn run() -> Result<()> {
         let cli = StructCheckerCLI::parse();
 
         match cli.subcommand {

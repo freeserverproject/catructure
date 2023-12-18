@@ -13,4 +13,5 @@ clap = { version = "4.4.11", features = ["derive"] }
 fastnbt = "2.4.4"
 flate2 = "1.0.28"
 serde = { version = "1.0.193", features = ["derive"] }
+thiserror = "1.0.51"
 toml = "0.8.8"

@@ -5,7 +5,10 @@ use std::{
     fs::File
 };
 
-use crate::model::{structure, config};
+use crate::{
+    error::{Result, CatructureError},
+    model::{structure, config::Config}
+};
 
 #[derive(Debug, clap::Args)]
 pub struct Arg {
@@ -19,15 +22,10 @@ pub struct Arg {
     config: PathBuf
 }
 
-pub fn run(arg: Arg) {
-    // ファイル読み込み & デシリアライズ
-    let mut config = String::new();
-    File::open(&arg.config)
-        .expect("Failed read config file.")
-        .read_to_string(&mut config)
-        .expect("Failed read config file.");
-    let config = toml::from_str::<config::Config>(&config).unwrap();
+pub fn run(arg: Arg) -> Result<()> {
+    let config = Config::read(arg.config)?;
 
+    // ファイル読み込み & デシリアライズ
     let file = File::open(&arg.file).unwrap();
     let mut decoder = GzDecoder::new(file);
     let mut structure = vec![];
@@ -76,9 +74,11 @@ pub fn run(arg: Arg) {
 
         let mut blocked_blocks_tree_string = String::new();
         write_tree(&mut blocked_blocks_tree_string, &Tree::Node(String::from("Blocked"), blocked)).expect("Failed write tree.");
-        println!("{}", blocked_blocks_tree_string);
+
+        Err(CatructureError::DetectBlacklistBlock(blocked_blocks_tree_string))
     } else {
-        println!("File OK!")
+        println!("File OK!");
+        Ok(())
     }
 
     // println!(
