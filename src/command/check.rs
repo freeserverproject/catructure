@@ -67,9 +67,4 @@ pub fn run(arg: Arg) -> Result<()> {
         println!("File OK!");
         Ok(())
     }
-
-    // println!(
-    //     "{:?}",
-    //     structure
-    // );
 }
