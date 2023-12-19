@@ -13,18 +13,6 @@ pub struct Config {
     pub blacklist: Blacklist
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum ContainerSetting {
-    Allow,
-    Empty
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Blacklist {
-    pub blocks: Vec<String>
-}
-
 impl Config {
     pub fn load<P: AsRef<Path>>(path: P) -> Result<Config> {
         let mut config = String::new();
@@ -35,4 +23,16 @@ impl Config {
 
         toml::from_str::<Config>(&config).map_err(CatructureError::FailedDeserializeConfigFile)
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ContainerSetting {
+    Allow,
+    Empty
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Blacklist {
+    pub blocks: Vec<String>
 }
