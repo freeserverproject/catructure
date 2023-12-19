@@ -19,8 +19,8 @@ pub struct Arg {
 }
 
 pub fn run(arg: Arg) -> Result<()> {
-    let config = Config::read(arg.config)?;
-    let structure = Structure::read(arg.file)?;
+    let config = Config::load(arg.config)?;
+    let structure = Structure::load(arg.file)?;
 
     // Paletteにblacklistのブロックが存在するか確認し存在したら随時追加
     let mut blocked_blocks = Vec::<(&structure::PaletteBlock, Vec<&structure::BlockPosition>)>::new();

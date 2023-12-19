@@ -26,7 +26,7 @@ pub struct Blacklist {
 }
 
 impl Config {
-    pub fn read<P: AsRef<Path>>(path: P) -> Result<Config> {
+    pub fn load<P: AsRef<Path>>(path: P) -> Result<Config> {
         let mut config = String::new();
         File::open(path)
             .map_err(CatructureError::FailedOpenConfigFile)?

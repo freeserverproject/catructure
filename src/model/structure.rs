@@ -21,7 +21,7 @@ pub struct Structure {
 }
 
 impl Structure {
-    pub fn read<P: AsRef<Path>>(path: P) -> Result<Structure> {
+    pub fn load<P: AsRef<Path>>(path: P) -> Result<Structure> {
         let file = File::open(path)
             .map_err(CatructureError::FailedReadNBTFile)?;
         let mut decoder = GzDecoder::new(file);
