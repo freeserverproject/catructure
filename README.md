@@ -5,7 +5,9 @@
 - [x] .nbt(structure)を読み込む
 - [x] blockをブロックリストに追加する
   - [x] コンフィグファイル(.toml)
-  - [　] Contaier持ちのブロックの制限
+  - [ ] Contaier持ちのブロックの制限
+  - [x] paletteの対応
+  - [ ] palettesの対応
 
 ## How to use
 help
