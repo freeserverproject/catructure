@@ -55,7 +55,7 @@ pub fn run(arg: Arg) -> Result<()> {
                 ]));
             }
 
-            let blocked_blocks_node = Tree::Node(format!("{}", palette_block.name), positions);
+            let blocked_blocks_node = Tree::Node(format!("{}", palette_block), positions);
             blocked.push(blocked_blocks_node);
         }
 

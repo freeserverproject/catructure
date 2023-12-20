@@ -1,6 +1,6 @@
 use std::{
     collections::HashMap, fs::File, path::Path,
-    io::Read
+    io::Read, fmt::Display
 };
 
 use flate2::read::GzDecoder;
@@ -39,6 +39,36 @@ pub struct PaletteBlock {
     pub name: String,
     pub properties: Option<HashMap<String, String>>
 }
+
+impl Display for PaletteBlock {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+
+        if let Some(properties) = &self.properties {
+            if properties.len() == 0 { return write!(f, "{}", self.name.clone()); };
+            let mut properties = properties
+                .iter()
+                .collect::<Vec<_>>();
+
+            properties.sort_by(|(key_a, _), (key_b, _)| key_a.cmp(key_b)); 
+
+            let properties = properties
+                .iter()
+                .map(|(key, value)| format!("{}={}", key, value))
+                .collect::<Vec<_>>()
+                .join(",");
+
+            write!(
+                f,
+                "{}[{}]",
+                self.name,
+                properties
+            )
+        } else {
+            write!(f, "{}", self.name)
+        }
+    }
+}
+
 
 pub type NBT = HashMap<String, Value>;
 
