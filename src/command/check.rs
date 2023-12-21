@@ -1,5 +1,6 @@
 use ascii_tree::{Tree, write_tree};
-use std::path::PathBuf;
+use clap::builder::Str;
+use std::{path::PathBuf, collections::HashMap};
 
 use crate::{
     error::{Result, CatructureError},
@@ -23,30 +24,34 @@ pub fn run(arg: Arg) -> Result<()> {
     let structure = Structure::load(arg.file)?;
 
     // Paletteにblacklistのブロックが存在するか確認し存在したら随時追加
-    let mut blocked_blocks = Vec::<(&structure::PaletteBlock, Vec<&structure::BlockPosition>)>::new();
+    let mut banned_blocks = HashMap::<&String, Vec<&structure::BlockPosition>>::new();
 
     if let Some(palette) = &structure.palette {
         for (index, block) in palette.iter().enumerate() {
             if config.blacklist.blocks.contains(&block.name) {
-                let mut block_positions = Vec::new();
+                let mut block_positions_tmp = Vec::new();
 
                 structure.blocks.iter().for_each(|block_pos| {
                     if block_pos.state as usize == index {
-                        block_positions.push(block_pos);
+                        block_positions_tmp.push(block_pos);
                     }
                 });
 
-                blocked_blocks.push((
-                    block,
-                    block_positions
-                ));
+                if let Some(block_positions) = banned_blocks.get_mut(&block.name) {
+                    block_positions.extend(block_positions_tmp);
+                } else {
+                    banned_blocks.insert(
+                        &block.name,
+                        block_positions_tmp
+                    );
+                }
             }
         }
     }
 
-    if !blocked_blocks.is_empty() {
+    if !banned_blocks.is_empty() {
         let mut blocked: Vec<Tree> = Vec::new();
-        for (palette_block, block_positions) in blocked_blocks {
+        for (block_name, block_positions) in banned_blocks {
             let mut positions: Vec<Tree> = Vec::new();
             for block_pos in block_positions {
                 let block_pos = &block_pos.pos;
@@ -55,14 +60,14 @@ pub fn run(arg: Arg) -> Result<()> {
                 ]));
             }
 
-            let blocked_blocks_node = Tree::Node(format!("{}", palette_block), positions);
-            blocked.push(blocked_blocks_node);
+            let banned_blocks_node = Tree::Node(format!("{}", block_name), positions);
+            blocked.push(banned_blocks_node);
         }
 
-        let mut blocked_blocks_tree_string = String::new();
-        write_tree(&mut blocked_blocks_tree_string, &Tree::Node(String::from("Blocked"), blocked)).expect("Failed write tree.");
+        let mut banned_blocks_tree_string = String::new();
+        write_tree(&mut banned_blocks_tree_string, &Tree::Node(String::from("Blocked"), blocked)).expect("Failed write tree.");
 
-        Err(CatructureError::DetectBlacklistBlock(blocked_blocks_tree_string))
+        Err(CatructureError::DetectBlacklistBlock(banned_blocks_tree_string))
     } else {
         println!("File OK!");
         Ok(())
