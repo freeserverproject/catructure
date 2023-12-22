@@ -6,6 +6,7 @@
 - [x] blockをブロックリストに追加する
   - [x] コンフィグファイル(.toml)
   - [ ] Contaier持ちのブロックの制限
+  - [ ] entityの制限
   - [x] paletteの対応
   - [ ] palettesの対応
 
