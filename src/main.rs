@@ -1,9 +1,9 @@
 mod command;
 mod model;
 mod error;
+mod ascii_tree;
 
 use std::process;
-
 use command::StructCheckerCLI;
 
 fn main() {

@@ -1,10 +1,11 @@
-use ascii_tree::{Tree, write_tree};
-use clap::builder::Str;
-use std::{path::PathBuf, collections::HashMap};
+use std::{
+    path::PathBuf,
+    collections::HashMap
+};
 
 use crate::{
     error::{Result, CatructureError},
-    model::{structure::{self, Structure}, config::Config}
+    model::{structure::{self, Structure}, config::Config}, ascii_tree::Node
 };
 
 #[derive(Debug, clap::Args)]
@@ -50,24 +51,20 @@ pub fn run(arg: Arg) -> Result<()> {
     }
 
     if !banned_blocks.is_empty() {
-        let mut blocked: Vec<Tree> = Vec::new();
+        let mut blocked_node = Node::new("Blocked");
         for (block_name, block_positions) in banned_blocks {
-            let mut positions: Vec<Tree> = Vec::new();
+            let mut banned_blocks_node = Node::new(block_name.clone());
             for block_pos in block_positions {
                 let block_pos = &block_pos.pos;
-                positions.push(Tree::Leaf(vec![
+                banned_blocks_node.push(
                     format!("{} {} {}", block_pos[0], block_pos[1], block_pos[2])
-                ]));
+                );
             }
 
-            let banned_blocks_node = Tree::Node(format!("{}", block_name), positions);
-            blocked.push(banned_blocks_node);
+            blocked_node.push(banned_blocks_node);
         }
 
-        let mut banned_blocks_tree_string = String::new();
-        write_tree(&mut banned_blocks_tree_string, &Tree::Node(String::from("Blocked"), blocked)).expect("Failed write tree.");
-
-        Err(CatructureError::DetectBlacklistBlock(banned_blocks_tree_string))
+        Err(CatructureError::DetectBlacklistBlock(blocked_node.to_string()))
     } else {
         println!("File OK!");
         Ok(())
