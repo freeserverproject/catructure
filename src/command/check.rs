@@ -38,14 +38,7 @@ pub fn run(arg: Arg) -> Result<()> {
                     }
                 });
 
-                if let Some(block_positions) = banned_blocks.get_mut(&block.name) {
-                    block_positions.extend(block_positions_tmp);
-                } else {
-                    banned_blocks.insert(
-                        &block.name,
-                        block_positions_tmp
-                    );
-                }
+                banned_blocks.entry(&block.name).or_default().extend(block_positions_tmp);
             }
         }
     }
