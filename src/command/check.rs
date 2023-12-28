@@ -5,8 +5,10 @@ use std::{
 
 use crate::{
     error::{Result, CatructureError},
-    model::{structure::{self, Structure}, config::Config}, ascii_tree::Node
+    model::{structure::{self, Structure, PaletteBlock}, config::{Config, Blacklist}}, ascii_tree::Node
 };
+
+type Palette<'a> = HashMap::<&'a String, Vec<&'a structure::BlockPosition>>;
 
 #[derive(Debug, clap::Args)]
 pub struct Arg {
@@ -25,41 +27,93 @@ pub fn run(arg: Arg) -> Result<()> {
     let structure = Structure::load(arg.file)?;
 
     // Paletteにblacklistのブロックが存在するか確認し存在したら随時追加
-    let mut banned_blocks = HashMap::<&String, Vec<&structure::BlockPosition>>::new();
+    let mut banned_palettes = Vec::<(String, Palette)>::new();
 
+    // Static palette
     if let Some(palette) = &structure.palette {
+        let banned_palette = structure.detect_blacklist_block(palette, &config.blacklist);
+        if !banned_palette.is_empty() {
+            banned_palettes.push((
+                "Static palette".to_string(),
+                banned_palette
+            ));
+        }
+    }
+
+    // Random palette
+    if let Some(palettes) = &structure.palettes {
+        for (index, palette) in palettes.iter().enumerate() {
+            let banned_palette = structure.detect_blacklist_block(palette, &config.blacklist);
+            if !banned_palette.is_empty() {
+                banned_palettes.push((
+                    format!("Random palette({})", index),
+                    banned_palette
+                ));
+            }
+        }
+    }
+
+    // banned_paletteが存在していたいたらASCII TREEに出力しエラーで終了
+    // 存在してなければそのまま正常終了
+    if !banned_palettes.is_empty() {
+        let mut banned_palettes_tree = Node::new("Banned");
+
+        for (palette_name, palette) in banned_palettes {
+            let mut banned_palette_tree = Node::new(palette_name);
+
+            for (block_name, block_positions) in palette.iter() {
+                let mut banned_blocks_pos_node = Node::new((*block_name).clone());
+                for block_pos in block_positions {
+                    let block_pos = &block_pos.pos;
+                    banned_blocks_pos_node.push(
+                        format!("{} {} {}", block_pos[0], block_pos[1], block_pos[2])
+                    );
+                }
+
+                banned_palette_tree.push(banned_blocks_pos_node);
+            }
+
+            banned_palettes_tree.push(banned_palette_tree);
+        }
+
+
+        Err(CatructureError::DetectBlacklistBlock(banned_palettes_tree.to_string()))
+    } else {
+        println!("File OK!");
+        Ok(())
+    }
+}
+
+trait BlockBlacklist {
+    fn detect_blacklist_block<'a>(
+        &'a self,
+        palette: &'a Vec<PaletteBlock>,
+        blacklist: &'a Blacklist
+    ) -> Palette;
+}
+
+impl BlockBlacklist for Structure {
+    fn detect_blacklist_block<'a>(
+            &'a self,
+            palette: &'a Vec<PaletteBlock>,
+            blacklist: &'a Blacklist
+    ) -> Palette {
+        let mut bucket = Palette::new();
+
         for (index, block) in palette.iter().enumerate() {
-            if config.blacklist.blocks.contains(&block.name) {
+            if blacklist.blocks.contains(&block.name) {
                 let mut block_positions_tmp = Vec::new();
 
-                structure.blocks.iter().for_each(|block_pos| {
+                self.blocks.iter().for_each(|block_pos| {
                     if block_pos.state as usize == index {
                         block_positions_tmp.push(block_pos);
                     }
                 });
 
-                banned_blocks.entry(&block.name).or_default().extend(block_positions_tmp);
+                bucket.entry(&block.name).or_default().extend(block_positions_tmp);
             }
         }
-    }
 
-    if !banned_blocks.is_empty() {
-        let mut blocked_node = Node::new("Blocked");
-        for (block_name, block_positions) in banned_blocks {
-            let mut banned_blocks_node = Node::new(block_name.clone());
-            for block_pos in block_positions {
-                let block_pos = &block_pos.pos;
-                banned_blocks_node.push(
-                    format!("{} {} {}", block_pos[0], block_pos[1], block_pos[2])
-                );
-            }
-
-            blocked_node.push(banned_blocks_node);
-        }
-
-        Err(CatructureError::DetectBlacklistBlock(blocked_node.to_string()))
-    } else {
-        println!("File OK!");
-        Ok(())
+        bucket
     }
 }
