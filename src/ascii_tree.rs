@@ -46,7 +46,10 @@ impl Node {
     pub fn write_tree(&self, f: &mut std::fmt::Formatter<'_>, parts: Vec<&str>) -> std::fmt::Result {
         writeln!(f, " {}", self.title)?;
 
-        let last_pos = self.children.len() - 1;
+        let last_pos = match self.children.len() {
+            0 => 0,
+            len => len - 1
+        };
         let formatted_parts = parts.join("");
 
         for (i, child) in self.children.iter().enumerate() {
