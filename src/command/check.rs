@@ -5,10 +5,10 @@ use std::{
 
 use crate::{
     error::{Result, CatructureError},
-    model::{structure::{self, Structure, PaletteBlock}, config::{Config, Blacklist}}, ascii_tree::Node
+    model::{structure::{Structure, PaletteBlock}, config::{Config, Blacklist}}, ascii_tree::Node
 };
 
-type Palette<'a> = HashMap::<&'a String, Vec<&'a structure::BlockPosition>>;
+type Target<'a> = HashMap::<&'a String, Vec<String>>;
 
 #[derive(Debug, clap::Args)]
 pub struct Arg {
@@ -27,13 +27,13 @@ pub fn run(arg: Arg) -> Result<()> {
     let structure = Structure::load(arg.file)?;
 
     // Paletteにblacklistのブロックが存在するか確認し存在したら随時追加
-    let mut banned_palettes = Vec::<(String, Palette)>::new();
+    let mut banned_targets = Vec::<(String, Target)>::new();
 
     // Static palette
     if let Some(palette) = &structure.palette {
         let banned_palette = structure.detect_blacklist_block(palette, &config.blacklist);
         if !banned_palette.is_empty() {
-            banned_palettes.push((
+            banned_targets.push((
                 "Static palette".to_string(),
                 banned_palette
             ));
@@ -45,7 +45,7 @@ pub fn run(arg: Arg) -> Result<()> {
         for (index, palette) in palettes.iter().enumerate() {
             let banned_palette = structure.detect_blacklist_block(palette, &config.blacklist);
             if !banned_palette.is_empty() {
-                banned_palettes.push((
+                banned_targets.push((
                     format!("Random palette({})", index),
                     banned_palette
                 ));
@@ -55,29 +55,28 @@ pub fn run(arg: Arg) -> Result<()> {
 
     // banned_paletteが存在していたいたらASCII TREEに出力しエラーで終了
     // 存在してなければそのまま正常終了
-    if !banned_palettes.is_empty() {
-        let mut banned_palettes_tree = Node::new("Banned");
+    if !banned_targets.is_empty() {
+        let mut banned_targets_tree = Node::new("Banned");
 
-        for (palette_name, palette) in banned_palettes {
-            let mut banned_palette_tree = Node::new(palette_name);
+        for (target_name, targe) in banned_targets {
+            let mut banned_target_tree = Node::new(target_name);
 
-            for (block_name, block_positions) in palette.iter() {
-                let mut banned_blocks_pos_node = Node::new((*block_name).clone());
-                for block_pos in block_positions {
-                    let block_pos = &block_pos.pos;
-                    banned_blocks_pos_node.push(
-                        format!("{} {} {}", block_pos[0], block_pos[1], block_pos[2])
+            for (target_details_name, target_details) in targe.iter() {
+                let mut banned_target_detail_tree = Node::new((*target_details_name).clone());
+
+                for target_detail in target_details {
+                    banned_target_detail_tree.push(
+                        target_detail.clone()
                     );
                 }
 
-                banned_palette_tree.push(banned_blocks_pos_node);
+                banned_target_tree.push(banned_target_detail_tree);
             }
 
-            banned_palettes_tree.push(banned_palette_tree);
+            banned_targets_tree.push(banned_target_tree);
         }
 
-
-        Err(CatructureError::DetectBlacklistBlock(banned_palettes_tree.to_string()))
+        Err(CatructureError::DetectBlacklistBlock(banned_targets_tree.to_string()))
     } else {
         println!("File OK!");
         Ok(())
@@ -89,7 +88,7 @@ trait BlockBlacklist {
         &'a self,
         palette: &'a Vec<PaletteBlock>,
         blacklist: &'a Blacklist
-    ) -> Palette;
+    ) -> Target;
 }
 
 impl BlockBlacklist for Structure {
@@ -97,8 +96,8 @@ impl BlockBlacklist for Structure {
             &'a self,
             palette: &'a Vec<PaletteBlock>,
             blacklist: &'a Blacklist
-    ) -> Palette {
-        let mut bucket = Palette::new();
+    ) -> Target {
+        let mut bucket = Target::new();
 
         for (index, block) in palette.iter().enumerate() {
             if blacklist.blocks.contains(&block.name) {
@@ -106,7 +105,7 @@ impl BlockBlacklist for Structure {
 
                 self.blocks.iter().for_each(|block_pos| {
                     if block_pos.state as usize == index {
-                        block_positions_tmp.push(block_pos);
+                        block_positions_tmp.push(format!("{} {} {}", block_pos.pos[0], block_pos.pos[1], block_pos.pos[2]));
                     }
                 });
 
