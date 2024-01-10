@@ -3,6 +3,7 @@ use std::{
     io::Read, fmt::Display
 };
 
+use clap::builder::Str;
 use flate2::read::GzDecoder;
 use fastnbt::Value;
 use serde::{Serialize, Deserialize};
@@ -42,7 +43,6 @@ pub struct PaletteBlock {
 
 impl Display for PaletteBlock {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-
         if let Some(properties) = &self.properties {
             if properties.len() == 0 { return write!(f, "{}", self.name.clone()); };
             let mut properties = properties
@@ -69,20 +69,28 @@ impl Display for PaletteBlock {
     }
 }
 
-
-pub type NBT = HashMap<String, Value>;
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct BlockNBT {
+    items: Option<Vec<HashMap<String, Value>>>
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BlockPosition {
     pub state: i32,
     pub pos: Vec<i32>,
-    pub nbt: Option<NBT>
+    pub nbt: Option<BlockNBT>
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Entity {
-    pub pos: Vec<i32>,
+    pub pos: (f64, f64, f64),
     #[serde(rename = "blockPos")]
-    pub block_pos: Vec<i32>,
-    pub nbt: Option<NBT>
+    pub block_pos: (i32, i32, i32),
+    pub nbt: EntityNBT
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct EntityNBT {
+    pub id: String
 }

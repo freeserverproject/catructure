@@ -10,6 +10,7 @@ use crate::error::{CatructureError, Result};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
     pub container: ContainerSetting,
+    pub entity: EntitySetting,
     pub blacklist: Blacklist
 }
 
@@ -29,8 +30,16 @@ impl Config {
 #[serde(rename_all = "snake_case")]
 pub enum ContainerSetting {
     Allow,
-    Empty
+    Deny
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EntitySetting {
+    Allow,
+    Deny
+}
+
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Blacklist {

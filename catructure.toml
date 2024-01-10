@@ -1,8 +1,9 @@
-# Contaierを許可するか否か
+# ChestなどのContaierを許可するか否か
 # values:
 # - allow
-# - empty
-container = "empty"
+# - deny
+container = "deny"
+entity = "deny"
 
 [blacklist]
 
@@ -13,5 +14,8 @@ container = "empty"
 blocks = [
   # Blocks here
   # "minecraft:command_block"
-  "minecraft:soul_lantern"
+  "minecraft:polished_basalt",
+  "minecraft:soul_lantern",
+  "minecraft:polished_deepslate_wall",
+  "minecraft:chest"
 ]

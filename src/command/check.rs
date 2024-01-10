@@ -57,22 +57,15 @@ pub fn run(arg: Arg) -> Result<()> {
         }
     }
 
-    // banned_paletteが存在していたいたらASCII TREEに出力しエラーで終了
-    // 存在してなければそのまま正常終了
-    if !banned_targets.is_empty() {
-        let mut banned_targets_tree = Node::new("Banned");
-
-        for (target_name, targe) in banned_targets {
-            let mut banned_target_tree = Node::new(target_name);
-
-            for (target_details_name, target_details) in targe.iter() {
-                let mut banned_target_detail_tree = Node::new((*target_details_name).clone());
-
-                for target_detail in target_details {
-                    banned_target_detail_tree.push(
-                        target_detail.clone()
-                    );
-                }
+    if matches!(config.entity, EntitySetting::Deny) {
+        let entity_count = structure.entities.len();
+        if entity_count != 0 {
+            banned_targets.push(
+                (format!("{} Entity(Entities) detected", entity_count),
+                structure.entities.iter().map(|v| format!("{} at ({}, {}, {})", v.nbt.id, v.pos.0.floor(), v.pos.1.floor(), v.pos.2.floor())).collect()
+            ))
+        };
+    }
 
     // banned_paletteが存在していたいたらASCII TREEに出力しエラーで終了
     // 存在してなければそのまま正常終了
