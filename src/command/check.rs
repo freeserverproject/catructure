@@ -63,8 +63,8 @@ pub fn run(arg: Arg) -> Result<()> {
             banned_targets.push(
                 (format!("{} Entity(Entities) detected", entity_count),
                 structure.entities.iter().map(|v| format!("{} at ({}, {}, {})", v.nbt.id, v.pos.0.floor(), v.pos.1.floor(), v.pos.2.floor())).collect()
-            ))
-        };
+            ));
+        }
     }
 
     // banned_paletteが存在していたいたらASCII TREEに出力しエラーで終了
