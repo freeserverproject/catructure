@@ -6,22 +6,42 @@ const EDGE: &str = " └─";
 const PIPE: &str = " │ ";
 const BRANCH: &str = " ├─";
 
-
 #[derive(Clone)]
 pub enum TreeElement {
     Node(Node),
     Leaf(Leaf)
 }
 
-impl Into<TreeElement> for String {
-    fn into(self) -> TreeElement {
-        Leaf::new(self).into()
+impl From<String> for TreeElement {
+    fn from(value: String) -> Self {
+        Leaf::new(value).into()
     }
 }
 
-impl Into<TreeElement> for &str {
-    fn into(self) -> TreeElement {
-        Leaf::new(self).into()
+impl From<&str> for TreeElement {
+    fn from(value: &str) -> Self {
+        Leaf::new(value).into()
+    }
+}
+
+impl From<Node> for TreeElement {
+    fn from(value: Node) -> Self {
+        TreeElement::Node(value)
+    }
+}
+
+impl From<Leaf> for TreeElement {
+    fn from(value: Leaf) -> Self {
+        TreeElement::Leaf(value)
+    }
+}
+
+impl<T: Into<TreeElement>> From<(String, Vec<T>)> for TreeElement {
+    fn from(value: (String, Vec<T>)) -> Self {
+        Node {
+            title: value.0,
+            children: value.1.into_iter().map(|v| v.into()).collect()
+        }.into()
     }
 }
 
@@ -90,12 +110,6 @@ impl Display for Node {
     }
 }
 
-impl Into<TreeElement> for Node {
-    fn into(self) -> TreeElement {
-        TreeElement::Node(self)
-    }
-}
-
 #[derive(Clone)]
 pub struct Leaf {
     text: String
@@ -106,12 +120,6 @@ impl Leaf {
         Leaf {
             text: text.into()
         }
-    }
-}
-
-impl Into<TreeElement> for Leaf {
-    fn into(self) -> TreeElement {
-        TreeElement::Leaf(self)
     }
 }
 

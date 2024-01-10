@@ -5,10 +5,14 @@ use std::{
 
 use crate::{
     error::{Result, CatructureError},
-    model::{structure::{Structure, PaletteBlock}, config::{Config, Blacklist}}, ascii_tree::Node
+    model::{
+        structure::{Structure, PaletteBlock},
+        config::{EntitySetting, Config, Blacklist}
+    },
+    ascii_tree::Node
 };
 
-type Target<'a> = HashMap::<&'a String, Vec<String>>;
+type Target = HashMap::<String, Vec<String>>;
 
 #[derive(Debug, clap::Args)]
 pub struct Arg {
@@ -27,7 +31,7 @@ pub fn run(arg: Arg) -> Result<()> {
     let structure = Structure::load(arg.file)?;
 
     // Paletteにblacklistのブロックが存在するか確認し存在したら随時追加
-    let mut banned_targets = Vec::<(String, Target)>::new();
+    let mut banned_targets = Node::new("Banned");
 
     // Static palette
     if let Some(palette) = &structure.palette {
@@ -35,7 +39,7 @@ pub fn run(arg: Arg) -> Result<()> {
         if !banned_palette.is_empty() {
             banned_targets.push((
                 "Static palette".to_string(),
-                banned_palette
+                banned_palette.into_iter().collect::<Vec<_>>()
             ));
         }
     }
@@ -47,7 +51,7 @@ pub fn run(arg: Arg) -> Result<()> {
             if !banned_palette.is_empty() {
                 banned_targets.push((
                     format!("Random palette({})", index),
-                    banned_palette
+                    banned_palette.into_iter().collect::<Vec<_>>()
                 ));
             }
         }
@@ -70,13 +74,10 @@ pub fn run(arg: Arg) -> Result<()> {
                     );
                 }
 
-                banned_target_tree.push(banned_target_detail_tree);
-            }
-
-            banned_targets_tree.push(banned_target_tree);
-        }
-
-        Err(CatructureError::DetectBlacklistBlock(banned_targets_tree.to_string()))
+    // banned_paletteが存在していたいたらASCII TREEに出力しエラーで終了
+    // 存在してなければそのまま正常終了
+    if !banned_targets.children.is_empty() {
+        Err(CatructureError::DetectBlacklistBlock(banned_targets.to_string()))
     } else {
         println!("File OK!");
         Ok(())
@@ -109,7 +110,7 @@ impl BlockBlacklist for Structure {
                     }
                 });
 
-                bucket.entry(&block.name).or_default().extend(block_positions_tmp);
+                bucket.entry(block.name.clone()).or_default().extend(block_positions_tmp);
             }
         }
 
