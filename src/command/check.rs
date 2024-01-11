@@ -1,13 +1,13 @@
 use std::{
-    path::PathBuf,
-    collections::HashMap
+    path::{PathBuf},
+    collections::HashMap, fmt::Display
 };
 
 use crate::{
     error::{Result, CatructureError},
     model::{
         structure::{Structure, PaletteBlock},
-        config::{EntitySetting, Config, Blacklist}
+        config::{EntitySetting, Config, Blacklist, ContainerSetting}
     },
     ascii_tree::Node
 };
@@ -62,9 +62,28 @@ pub fn run(arg: Arg) -> Result<()> {
         let entity_count = structure.entities.len();
         if entity_count != 0 {
             banned_targets.push(
-                (format!("{} Entity(Entities) detected", entity_count),
-                structure.entities.iter().map(|v| format!("{} at ({}, {}, {})", v.nbt.id, v.pos.0.floor(), v.pos.1.floor(), v.pos.2.floor())).collect()
+                (format!("{} Entity(Entities)", entity_count),
+                structure.entities.iter().map(|v| format!("{} at ({})", v.nbt.id, v.pos.to_string())).collect()
             ));
+        }
+    }
+
+    // Containerチェック
+    if matches!(config.container, ContainerSetting::Deny) {
+        let mut node = Node::new("Not empty container");
+
+        for block in structure.blocks.iter() {
+            if let Some(nbt) = &block.nbt {
+                if let Some(items) = &nbt.items {
+                    if !items.is_empty() {
+                        node.push(format!("{} at ({})", nbt.id, block.pos.to_string()))
+                    }
+                }
+            }
+        }
+
+        if !node.children.is_empty() {
+            banned_targets.push(node);
         }
     }
 
@@ -100,7 +119,7 @@ impl BlockBlacklist for Structure {
 
                 self.blocks.iter().for_each(|block_pos| {
                     if block_pos.state as usize == index {
-                        block_positions_tmp.push(format!("{} {} {}", block_pos.pos[0], block_pos.pos[1], block_pos.pos[2]));
+                        block_positions_tmp.push(block_pos.pos.to_string());
                     }
                 });
 

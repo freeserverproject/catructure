@@ -34,6 +34,25 @@ impl Structure {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct TuplePosition<T>(pub T, pub T, pub T);
+
+impl Display for TuplePosition<f64> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:.2} {:.2} {:.2}", self.0, self.1, self.2)?;
+
+        Ok(())
+    }
+}
+
+impl Display for TuplePosition<i32> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} {} {}", self.0, self.1, self.2)?;
+
+        Ok(())
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct PaletteBlock {
     pub name: String,
@@ -69,23 +88,25 @@ impl Display for PaletteBlock {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "PascalCase")]
 pub struct BlockNBT {
-    items: Option<Vec<HashMap<String, Value>>>
+    #[serde(rename = "Items")]
+    pub items: Option<Vec<HashMap<String, Value>>>,
+
+    pub id: String
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BlockPosition {
     pub state: i32,
-    pub pos: Vec<i32>,
+    pub pos: TuplePosition<i32>,
     pub nbt: Option<BlockNBT>
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Entity {
-    pub pos: (f64, f64, f64),
+    pub pos: TuplePosition<f64>,
     #[serde(rename = "blockPos")]
-    pub block_pos: (i32, i32, i32),
+    pub block_pos: TuplePosition<i32>,
     pub nbt: EntityNBT
 }
 
