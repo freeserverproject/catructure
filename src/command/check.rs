@@ -57,6 +57,7 @@ pub fn run(arg: Arg) -> Result<()> {
         }
     }
 
+    // Entityチェック
     if matches!(config.entity, EntitySetting::Deny) {
         let entity_count = structure.entities.len();
         if entity_count != 0 {
