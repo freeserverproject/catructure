@@ -3,7 +3,6 @@ use std::{
     io::Read, fmt::Display
 };
 
-use clap::builder::Str;
 use flate2::read::GzDecoder;
 use fastnbt::Value;
 use serde::{Serialize, Deserialize};
