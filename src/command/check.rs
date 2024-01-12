@@ -1,6 +1,6 @@
 use std::{
-    path::{PathBuf},
-    collections::HashMap, fmt::Display
+    path::PathBuf,
+    collections::HashMap
 };
 
 use crate::{
