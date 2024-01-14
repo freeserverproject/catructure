@@ -57,12 +57,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ascii_tree"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca6c635b3aa665c649ad1415f1573c85957dfa47690ec27aebe7ec17efe3c643"
-
-[[package]]
 name = "byteorder"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -72,7 +66,6 @@ checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 name = "catructure"
 version = "0.1.1"
 dependencies = [
- "ascii_tree",
  "clap",
  "fastnbt",
  "flate2",
