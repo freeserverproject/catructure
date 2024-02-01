@@ -73,12 +73,11 @@ pub fn run(arg: Arg) -> Result<()> {
         let mut node = Node::new("Not empty container");
 
         for block in structure.blocks.iter() {
-            if let Some(nbt) = &block.nbt {
-                if let Some(items) = &nbt.items {
-                    if !items.is_empty() {
-                        node.push(format!("{} at ({})", nbt.id, block.pos.to_string()))
-                    }
-                }
+            let Some(nbt) = &block.nbt else { continue; };
+            let Some(items) = &nbt.items else { continue; };
+
+            if !items.is_empty() {
+                node.push(format!("{} at ({})", nbt.id, block.pos.to_string()))
             }
         }
 
